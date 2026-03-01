@@ -24,8 +24,8 @@ export default function NotFound() {
 
           {/* Friendly explanation */}
           <p className="text-muted-foreground mb-8 leading-relaxed">
-            The wiki page you're looking for doesn't exist. It might have been
-            moved, deleted, or you entered the wrong URL.
+            The wiki page you&apos;re looking for doesn&apos;t exist. It might
+            have been moved, deleted, or you entered the wrong URL.
           </p>
 
           {/* Call-to-action button */}

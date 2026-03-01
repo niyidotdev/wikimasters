@@ -21,13 +21,14 @@ interface ViewerArticle {
 interface WikiArticleViewerProps {
   article: ViewerArticle;
   canEdit?: boolean;
-  pageviews?: number | null;
 }
 
 export default function WikiArticleViewer({
   article,
   canEdit = false,
 }: WikiArticleViewerProps) {
+  // ...existing code...
+
   // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -70,9 +71,7 @@ export default function WikiArticleViewer({
               <Calendar className="mr-1 h-4 w-4" />
               <span>{formatDate(article.createdAt)}</span>
             </div>
-            <div className="flex items-center">
-              <Badge variant="secondary">Article</Badge>
-            </div>
+            <Badge variant="secondary">Article</Badge>
           </div>
         </div>
 
