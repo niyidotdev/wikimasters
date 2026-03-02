@@ -42,6 +42,7 @@ export async function createArticle(data: CreateArticleInput) {
       slug: `${Date.now()}`,
       published: true,
       authorId: user.id,
+      imageUrl: data.imageUrl ?? undefined,
     })
     .returning({ id: articles.id });
 
@@ -61,11 +62,12 @@ export async function updateArticle(id: string, data: UpdateArticleInput) {
 
   console.log("📝 updateArticle called:", { id, ...data });
 
-  const _response = await db
+  await db
     .update(articles)
     .set({
       title: data.title,
       content: data.content,
+      imageUrl: data.imageUrl,
     })
     .where(eq(articles.id, +id));
 
@@ -84,7 +86,7 @@ export async function deleteArticle(id: string) {
 
   console.log("🗑️ deleteArticle called:", id);
 
-  const _response = await db.delete(articles).where(eq(articles.id, +id));
+  await db.delete(articles).where(eq(articles.id, +id));
 
   return { success: true, message: `Article ${id} delete logged (stub)` };
 }
