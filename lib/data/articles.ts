@@ -3,8 +3,25 @@ import { articles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { usersSync } from "@/db/schema";
 import { desc } from "drizzle-orm";
+import redis from "@/cache";
+
+export type ArticleList = {
+  id: number;
+  title: string;
+  createdAt: string;
+  content: string;
+  author: string | null;
+  imageUrl?: string | null;
+};
 
 export async function getArticles() {
+  const cached = await redis.get<ArticleList[]>("articles:all");
+  if (cached) {
+    console.log("Cache hit for articles");
+    return cached;
+  }
+  console.log("Cache miss for articles, querying database");
+
   const response = await db
     .select({
       title: articles.title,
@@ -17,8 +34,21 @@ export async function getArticles() {
     .leftJoin(usersSync, eq(articles.authorId, usersSync.id))
     .orderBy(desc(articles.createdAt));
 
-  return response;
+  redis.set("articles:all", response, {
+    ex: 60, // Cache for 60 seconds
+  });
+
+  return response as unknown as ArticleList[];
 }
+
+export type ArticleWithAuthor = {
+  id: number;
+  title: string;
+  content: string;
+  createdAt: string;
+  imageUrl?: string | null;
+  author: string | null;
+};
 
 export async function getArticleById(id: number) {
   const response = await db
@@ -34,5 +64,5 @@ export async function getArticleById(id: number) {
     .where(eq(articles.id, id))
     .leftJoin(usersSync, eq(articles.authorId, usersSync.id));
 
-  return response[0] ? response[0] : null;
+  return response[0] ? (response[0] as unknown as ArticleWithAuthor) : null;
 }

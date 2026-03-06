@@ -7,6 +7,7 @@ import db from "@/db/index";
 import { articles } from "@/db/schema";
 import { ensureUserExists } from "@/db/sync-user";
 import { stackServerApp } from "@/stack/server";
+import redis from "@/cache";
 
 // Server actions for articles (stubs)
 // TODO: Replace with real database operations when ready
@@ -34,20 +35,18 @@ export async function createArticle(data: CreateArticleInput) {
 
   console.log("✨ createArticle called:", data);
 
-  const response = await db
-    .insert(articles)
-    .values({
-      title: data.title,
-      content: data.content,
-      slug: `${Date.now()}`,
-      published: true,
-      authorId: user.id,
-      imageUrl: data.imageUrl ?? undefined,
-    })
-    .returning({ id: articles.id });
+  await db.insert(articles).values({
+    title: data.title,
+    content: data.content,
+    slug: `${Date.now()}`,
+    published: true,
+    authorId: user.id,
+    imageUrl: data.imageUrl ?? undefined,
+  });
 
-  const articleId = response[0]?.id;
-  return { success: true, message: "Article create logged", id: articleId };
+  redis.del("articles:all");
+
+  return { success: true, message: "Article create logged" };
 }
 
 export async function updateArticle(id: string, data: UpdateArticleInput) {

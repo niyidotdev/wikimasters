@@ -11,7 +11,7 @@ export default async function Home() {
           <WikiCard
             title={title}
             author={author ? author : "Unknown"}
-            date={`${createdAt.toLocaleDateString("en-US")} ${createdAt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`}
+            date={createdAt}
             summary={content.substring(0, 200)} // temporary
             href={`/wiki/${id}`}
             key={id}

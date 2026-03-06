@@ -36,10 +36,5 @@ export default async function ViewArticlePage({
     notFound();
   }
 
-  return (
-    <WikiArticleViewer
-      article={{ ...article, createdAt: article.createdAt.toISOString() }}
-      canEdit={canEdit}
-    />
-  );
+  return <WikiArticleViewer article={article} canEdit={canEdit} />;
 }
