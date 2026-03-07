@@ -35,18 +35,25 @@ export async function createArticle(data: CreateArticleInput) {
 
   console.log("✨ createArticle called:", data);
 
-  await db.insert(articles).values({
-    title: data.title,
-    content: data.content,
-    slug: `${Date.now()}`,
-    published: true,
-    authorId: user.id,
-    imageUrl: data.imageUrl ?? undefined,
-  });
+  const article = await db
+    .insert(articles)
+    .values({
+      title: data.title,
+      content: data.content,
+      slug: `${Date.now()}`,
+      published: true,
+      authorId: user.id,
+      imageUrl: data.imageUrl ?? undefined,
+    })
+    .returning();
 
   redis.del("articles:all");
 
-  return { success: true, message: "Article create logged" };
+  return {
+    success: true,
+    message: "Article create logged",
+    id: article[0]?.id,
+  };
 }
 
 export async function updateArticle(id: string, data: UpdateArticleInput) {
@@ -70,7 +77,7 @@ export async function updateArticle(id: string, data: UpdateArticleInput) {
     })
     .where(eq(articles.id, +id));
 
-  return { success: true, message: `Article ${id} update logged` };
+  return { success: true, message: `Article ${id} update logged`, id };
 }
 
 export async function deleteArticle(id: string) {
