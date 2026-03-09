@@ -15,30 +15,35 @@ export type ArticleList = {
 };
 
 export async function getArticles() {
-  const cached = await redis.get<ArticleList[]>("articles:all");
-  if (cached) {
-    console.log("Cache hit for articles");
-    return cached;
+  try {
+    const cached = await redis.get<ArticleList[]>("articles:all");
+    if (cached) {
+      console.log("Cache hit for articles");
+      return cached;
+    }
+    console.log("Cache miss for articles, querying database");
+
+    const response = await db
+      .select({
+        title: articles.title,
+        id: articles.id,
+        createdAt: articles.createdAt,
+        content: articles.content,
+        author: usersSync.name,
+      })
+      .from(articles)
+      .leftJoin(usersSync, eq(articles.authorId, usersSync.id))
+      .orderBy(desc(articles.createdAt));
+
+    redis.set("articles:all", response, {
+      ex: 60, // Cache for 60 seconds
+    });
+
+    return response as unknown as ArticleList[];
+  } catch (error) {
+    console.log("Error in fetching articles", error);
+    return [];
   }
-  console.log("Cache miss for articles, querying database");
-
-  const response = await db
-    .select({
-      title: articles.title,
-      id: articles.id,
-      createdAt: articles.createdAt,
-      content: articles.content,
-      author: usersSync.name,
-    })
-    .from(articles)
-    .leftJoin(usersSync, eq(articles.authorId, usersSync.id))
-    .orderBy(desc(articles.createdAt));
-
-  redis.set("articles:all", response, {
-    ex: 60, // Cache for 60 seconds
-  });
-
-  return response as unknown as ArticleList[];
 }
 
 export type ArticleWithAuthor = {
@@ -51,18 +56,23 @@ export type ArticleWithAuthor = {
 };
 
 export async function getArticleById(id: number) {
-  const response = await db
-    .select({
-      title: articles.title,
-      id: articles.id,
-      createdAt: articles.createdAt,
-      content: articles.content,
-      imageUrl: articles.imageUrl,
-      author: usersSync.name,
-    })
-    .from(articles)
-    .where(eq(articles.id, id))
-    .leftJoin(usersSync, eq(articles.authorId, usersSync.id));
+  try {
+    const response = await db
+      .select({
+        title: articles.title,
+        id: articles.id,
+        createdAt: articles.createdAt,
+        content: articles.content,
+        imageUrl: articles.imageUrl,
+        author: usersSync.name,
+      })
+      .from(articles)
+      .where(eq(articles.id, id))
+      .leftJoin(usersSync, eq(articles.authorId, usersSync.id));
 
-  return response[0] ? (response[0] as unknown as ArticleWithAuthor) : null;
+    return response[0] ? (response[0] as unknown as ArticleWithAuthor) : null;
+  } catch (error) {
+    console.error("Error fetching article", error);
+    return null;
+  }
 }

@@ -34,6 +34,16 @@ interface WikiArticleViewerProps {
   pageviews?: number | null;
 }
 
+// Format date for display
+export const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
 export default function WikiArticleViewer({
   article,
   canEdit = false,
@@ -48,16 +58,6 @@ export default function WikiArticleViewer({
     }
     fetchPageview();
   }, [article.id]);
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
