@@ -75,7 +75,7 @@ export default function WikiArticleViewer({
       </nav>
 
       {/* Article Header */}
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-6 flex flex-wrap items-start justify-between">
         <div className="flex-1">
           <h1 className="text-foreground mb-4 text-4xl font-bold">
             {article.title}
