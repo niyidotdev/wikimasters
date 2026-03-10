@@ -242,33 +242,10 @@ export default function WikiArticleViewer({
       </Card>
 
       {/* Footer Actions */}
-      <div className="mt-8 flex items-center justify-between">
+      <div className="mt-8">
         <Link href="/">
           <Button variant="outline">← Back to Articles</Button>
         </Link>
-
-        {canEdit && (
-          <div className="flex items-center gap-2">
-            <Link href={`/wiki/edit/${article.id}`} className="cursor-pointer">
-              <Button className="cursor-pointer">
-                <Edit className="mr-2 h-4 w-4" />
-                Edit This Article
-              </Button>
-            </Link>
-
-            <form action={deleteArticleForm}>
-              <input type="hidden" name="id" value={String(article.id)} />
-              <Button
-                type="submit"
-                variant="destructive"
-                className="cursor-pointer"
-              >
-                <Trash className="mr-2 h-4 w-4" />
-                Delete
-              </Button>
-            </form>
-          </div>
-        )}
       </div>
     </div>
   );
