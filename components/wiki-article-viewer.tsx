@@ -104,7 +104,7 @@ export default function WikiArticleViewer({
 
         {/* Edit Button - Only shown if user has edit permissions */}
         {canEdit && (
-          <div className="ml-4 flex items-center gap-2">
+          <div className="flex items-center gap-2 pt-3 sm:ml-4 sm:pt-0">
             <Link href={`/wiki/edit/${article.id}`} className="cursor-pointer">
               <Button variant="outline" className="cursor-pointer">
                 <Edit className="mr-2 h-4 w-4" />
