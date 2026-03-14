@@ -1,3 +1,4 @@
+import removeMarkdown from "remove-markdown";
 import Link from "next/link";
 import {
   Card,
@@ -34,7 +35,7 @@ export function WikiCard({
         <CardTitle className="text-lg">{title}</CardTitle>
       </CardHeader>
       <CardContent className="py-0">
-        <CardDescription>{summary}</CardDescription>
+        <CardDescription>{removeMarkdown(summary)}</CardDescription>
       </CardContent>
       <CardFooter className="pt-2">
         <Link
