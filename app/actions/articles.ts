@@ -80,6 +80,8 @@ export async function updateArticle(id: string, data: UpdateArticleInput) {
       })
       .where(eq(articles.id, +id));
 
+    await redis.del("articles:all");
+
     return { success: true, message: `Article ${id} update logged`, id };
   } catch (error) {
     console.error("❌ Error updating article:", error);
@@ -101,6 +103,8 @@ export async function deleteArticle(id: string) {
 
   try {
     await db.delete(articles).where(eq(articles.id, +id));
+
+    await redis.del("articles:all");
 
     return { success: true, message: `Article ${id} delete logged` };
   } catch (error) {
