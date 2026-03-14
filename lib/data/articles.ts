@@ -35,11 +35,19 @@ export async function getArticles() {
       .leftJoin(usersSync, eq(articles.authorId, usersSync.id))
       .orderBy(desc(articles.createdAt));
 
-    redis.set("articles:all", response, {
+    const normalised = response.map((article) => ({
+      ...article,
+      createdAt:
+        article.createdAt instanceof Date
+          ? article.createdAt.toISOString()
+          : String(article.createdAt),
+    }));
+
+    redis.set("articles:all", normalised, {
       ex: 60, // Cache for 60 seconds
     });
 
-    return response as unknown as ArticleList[];
+    return normalised;
   } catch (error) {
     console.log("Error in fetching articles", error);
     return [];
