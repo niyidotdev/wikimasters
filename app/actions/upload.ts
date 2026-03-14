@@ -3,9 +3,6 @@
 import { put } from "@vercel/blob";
 import { stackServerApp } from "@/stack/server";
 
-// Server action to handle uploads (stub)
-// TODO: Replace placeholder logic with real Cloudinary (or other) upload
-
 export type UploadedFile = {
   url: string;
   size: number;
@@ -14,9 +11,17 @@ export type UploadedFile = {
 };
 
 export async function uploadFile(formData: FormData): Promise<UploadedFile> {
-  const user = stackServerApp.getUser();
-  if (!user) {
-    throw new Error("Unauthorized: User must be logged in to upload files");
+  try {
+    const user = await stackServerApp.getUser();
+    if (!user) {
+      throw new Error("Unauthorized: User must be logged in to upload files");
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("Unauthorized")) {
+      throw error;
+    }
+    console.error("❌ Error verifying user session:", error);
+    throw new Error("Failed to verify user session");
   }
 
   // Basic validation constants
@@ -55,8 +60,8 @@ export async function uploadFile(formData: FormData): Promise<UploadedFile> {
       type: file.type,
       filename: blob.pathname ?? file.name,
     };
-  } catch (e) {
-    console.error("Upload failed:", e);
+  } catch (error) {
+    console.error("❌ Upload failed:", error);
     throw new Error("Upload failed");
   }
 }

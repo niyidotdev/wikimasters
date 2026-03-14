@@ -53,8 +53,12 @@ export default function WikiArticleViewer({
 
   useEffect(() => {
     async function fetchPageview() {
-      const newCount = await incrementPageview(article.id);
-      setLocalPageviews(newCount ?? null);
+      try {
+        const newCount = await incrementPageview(article.id);
+        setLocalPageviews(newCount ?? null);
+      } catch (error) {
+        console.error("❌ Error fetching pageview count:", error);
+      }
     }
     fetchPageview();
   }, [article.id]);

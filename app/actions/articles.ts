@@ -9,9 +9,6 @@ import { ensureUserExists } from "@/db/sync-user";
 import { stackServerApp } from "@/stack/server";
 import redis from "@/cache";
 
-// Server actions for articles (stubs)
-// TODO: Replace with real database operations when ready
-
 export type CreateArticleInput = {
   title: string;
   content: string;
@@ -31,29 +28,34 @@ export async function createArticle(data: CreateArticleInput) {
     throw new Error("❌ Unauthorized");
   }
 
-  await ensureUserExists(user);
+  try {
+    await ensureUserExists(user);
 
-  console.log("✨ createArticle called:", data);
+    console.log("✨ createArticle called:", data);
 
-  const article = await db
-    .insert(articles)
-    .values({
-      title: data.title,
-      content: data.content,
-      slug: `${Date.now()}`,
-      published: true,
-      authorId: user.id,
-      imageUrl: data.imageUrl ?? undefined,
-    })
-    .returning();
+    const article = await db
+      .insert(articles)
+      .values({
+        title: data.title,
+        content: data.content,
+        slug: `${Date.now()}`,
+        published: true,
+        authorId: user.id,
+        imageUrl: data.imageUrl ?? undefined,
+      })
+      .returning();
 
-  redis.del("articles:all");
+    await redis.del("articles:all");
 
-  return {
-    success: true,
-    message: "Article create logged",
-    id: article[0]?.id,
-  };
+    return {
+      success: true,
+      message: "Article create logged",
+      id: article[0]?.id,
+    };
+  } catch (error) {
+    console.error("❌ Error creating article:", error);
+    throw new Error("Failed to create article");
+  }
 }
 
 export async function updateArticle(id: string, data: UpdateArticleInput) {
@@ -68,16 +70,21 @@ export async function updateArticle(id: string, data: UpdateArticleInput) {
 
   console.log("📝 updateArticle called:", { id, ...data });
 
-  await db
-    .update(articles)
-    .set({
-      title: data.title,
-      content: data.content,
-      imageUrl: data.imageUrl,
-    })
-    .where(eq(articles.id, +id));
+  try {
+    await db
+      .update(articles)
+      .set({
+        title: data.title,
+        content: data.content,
+        imageUrl: data.imageUrl,
+      })
+      .where(eq(articles.id, +id));
 
-  return { success: true, message: `Article ${id} update logged`, id };
+    return { success: true, message: `Article ${id} update logged`, id };
+  } catch (error) {
+    console.error("❌ Error updating article:", error);
+    throw new Error(`Failed to update article ${id}`);
+  }
 }
 
 export async function deleteArticle(id: string) {
@@ -92,12 +99,19 @@ export async function deleteArticle(id: string) {
 
   console.log("🗑️ deleteArticle called:", id);
 
-  await db.delete(articles).where(eq(articles.id, +id));
+  try {
+    await db.delete(articles).where(eq(articles.id, +id));
 
-  return { success: true, message: `Article ${id} delete logged (stub)` };
+    return { success: true, message: `Article ${id} delete logged` };
+  } catch (error) {
+    console.error("❌ Error deleting article:", error);
+    throw new Error(`Failed to delete article ${id}`);
+  }
 }
 
-// Form-friendly server action: accepts FormData from a client form and calls deleteArticle
+// Form-friendly server action: accepts FormData from a client form and calls deleteArticle.
+// Note: redirect() must remain outside any try-catch as Next.js implements it by throwing
+// a special internal error that must not be swallowed.
 export async function deleteArticleForm(formData: FormData): Promise<void> {
   const id = formData.get("id");
   if (!id) {
@@ -105,6 +119,5 @@ export async function deleteArticleForm(formData: FormData): Promise<void> {
   }
 
   await deleteArticle(String(id));
-  // After deleting, redirect the user back to the homepage.
   redirect("/");
 }
